@@ -1,43 +1,71 @@
 package ru.netology.cloudservicediplom.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.io.Resource;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import lombok.SneakyThrows;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import ru.netology.cloudservicediplom.dto.FileDTO;
+import ru.netology.cloudservicediplom.dto.NewFileNameDTO;
+import ru.netology.cloudservicediplom.service.FileService;
 
-import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
 
 @CrossOrigin
 @RestController
 @RequiredArgsConstructor
 public class FileController {
 
+    private final FileService fileService;
+
+    @GetMapping("/list")
+    public List<FileDTO> fileList(@RequestHeader("auth-token") String authToken,
+                                     @RequestParam("limit") int limit) {
+        return fileService.fileList(authToken, limit);
+    }
+
     @PostMapping("/file")
-    public ResponseEntity<?> postFile(@RequestParam("filename") String filename) {
-        return null;
+    public ResponseEntity<?> postFile(@RequestHeader("auth-token") String authToken,
+                                      @RequestParam("filename") String filename, MultipartFile file){
+        System.out.println("FileController Save file");
+        fileService.postFile(authToken, file, filename);
+        System.out.println("FileController file is save");
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @DeleteMapping("/file")
-    public ResponseEntity<?> deleteFile(@RequestParam("filename") String filename) {
-        return null;
+    public ResponseEntity<?> deleteFile(@RequestHeader("auth-token") String authToken,
+                                    @RequestParam("filename") String fileName) {
+        fileService.deleteFile(authToken, fileName);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
 
     @GetMapping(value = "/file")
-    public ResponseEntity<?> getFile(@RequestParam("filename") String filename) throws IOException {
-        return null;
+    @SneakyThrows
+    public ResponseEntity<byte[]> getFile(@RequestHeader("auth-token") String authToken,
+                                           @RequestParam("filename") String fileName) {
+        var file = fileService.getFile(authToken, fileName);
+        Path path = Paths.get(file.getAbsolutePath());
+        var bytes = Files.readAllBytes(path);
+        var probeContentType = Files.probeContentType(path);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        ContentDisposition.attachment().filename(file.getName()).build().toString())
+                .contentType(probeContentType != null ? MediaType.valueOf(probeContentType) : MediaType.APPLICATION_OCTET_STREAM)
+                .body(bytes);
     }
 
-    @RequestMapping(value = "/file", method = RequestMethod.PUT)
-    public ResponseEntity<?> putFile(@RequestParam("filename") String filename) {
-        return null;
+    @PutMapping(value = "/file")
+    public ResponseEntity<?> renameFile(@RequestHeader("auth-token") String authToken,
+                                    @RequestParam("filename") String fileName,
+                                    @RequestBody NewFileNameDTO newFileName){
+        fileService.renameFile(authToken, fileName, newFileName.getNewName());
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @GetMapping("/list")
-    public ResponseEntity<?> getList() {
-        return null;
-    }
+
 }

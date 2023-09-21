@@ -4,7 +4,9 @@ package ru.netology.cloudservicediplom.security;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -14,7 +16,10 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static ru.netology.cloudservicediplom.security.JWTFilter.BEARER_CUT;
+
 @Service
+@RequiredArgsConstructor
 public class JWTUtil {
 
     @Value("${jwt.secret}")
@@ -26,21 +31,21 @@ public class JWTUtil {
     // генерация токена (кладем в него имя пользователя и authorities)
     public String generateToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
-        String commaSeparatedListOfAuthorities=  userDetails.getAuthorities().stream().map(a->a.getAuthority()).collect(Collectors.joining(","));
+        String commaSeparatedListOfAuthorities=
+                userDetails.getAuthorities().stream()
+                        .map(GrantedAuthority::getAuthority).collect(Collectors.joining(","));
         claims.put("authorities", commaSeparatedListOfAuthorities);
         return createToken(claims, userDetails.getUsername());
     }
 
     //извлечение имени пользователя из токена (внутри валидация токена)
     public String extractUsername(String token) {
-        return extractClaim(token, Claims::getSubject);
+        return extractClaim(token.substring(BEARER_CUT), Claims::getSubject);
     }
 
     //извлечение authorities (внутри валидация токена)
     public String extractAuthorities(String token) {
-        Function<Claims, String> claimsListFunction = claims -> {
-            return (String)claims.get("authorities");
-        };
+        Function<Claims, String> claimsListFunction = claims -> (String)claims.get("authorities");
         return extractClaim(token, claimsListFunction);
     }
 
@@ -57,7 +62,6 @@ public class JWTUtil {
 
 
     private String createToken(Map<String, Object> claims, String subject) {
-
         return Jwts.builder().setClaims(claims)
                 .setSubject(subject)
                 .setIssuedAt(new Date(System.currentTimeMillis()))

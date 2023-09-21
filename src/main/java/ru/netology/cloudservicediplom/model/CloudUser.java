@@ -2,22 +2,19 @@ package ru.netology.cloudservicediplom.model;
 
 import lombok.*;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
 @Entity
-public class MyUser {
+@Table(name = "cloud_user")
+public class CloudUser {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     long id;
     private String login;
     private String password;
-    private String position;
     private String role;
 }

@@ -1,32 +1,32 @@
-package ru.netology.cloudservicediplom.service;
+package ru.netology.cloudservicediplom.security;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import ru.netology.cloudservicediplom.model.MyUser;
-import ru.netology.cloudservicediplom.repository.MyUserRepository;
+import ru.netology.cloudservicediplom.model.CloudUser;
+import ru.netology.cloudservicediplom.repository.UserRepository;
 
 
 @Service
 @RequiredArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService {
 
-    private final MyUserRepository dao;
+    private final UserRepository userRepository;
+
     @Override
     public UserDetails loadUserByUsername(String userName) throws UsernameNotFoundException {
-        MyUser myUser= dao.findByLogin(userName);
-        if (myUser == null) {
-            throw new UsernameNotFoundException("Unknown user: "+userName);
+        CloudUser user = userRepository.findByLogin(userName)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        if (user == null) {
+            throw new UsernameNotFoundException("Unknown user: " + userName);
         }
-        UserDetails user = User.builder()
-                .username(myUser.getLogin())
-                .password(myUser.getPassword())
-                .roles(myUser.getRole())
+        return User.builder()
+                .username(user.getLogin())
+                .password(user.getPassword())
+                .roles(user.getRole())
                 .build();
-        return user;
     }
 }
