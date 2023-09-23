@@ -16,6 +16,10 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     private final UserRepository userRepository;
 
+    private final JWTUtil jwtUtil;
+
+    private final static String DEFAULT_ROLE = "USER";
+
     @Override
     public UserDetails loadUserByUsername(String userName) throws UsernameNotFoundException {
         CloudUser user = userRepository.findByLogin(userName)
@@ -25,8 +29,8 @@ public class CustomUserDetailsService implements UserDetailsService {
         }
         return User.builder()
                 .username(user.getLogin())
-                .password(user.getPassword())
-                .roles(user.getRole())
+                .password(jwtUtil.bcryptEncoder().encode(user.getPassword()))
+                .roles(DEFAULT_ROLE)
                 .build();
     }
 }

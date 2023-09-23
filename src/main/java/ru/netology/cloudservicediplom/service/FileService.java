@@ -14,7 +14,7 @@ public interface FileService {
 
     void renameFile(String token, String fileName, String newName);
 
-    void postFile(String token, MultipartFile file, String fileName);
+    boolean postFile(String token, MultipartFile file, String fileName);
 
     void deleteFile(String token, String fileName);
 }

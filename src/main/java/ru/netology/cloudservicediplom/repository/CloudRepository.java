@@ -13,13 +13,10 @@ import java.nio.file.Paths;
 
 @Repository
 public class CloudRepository {
+
     public boolean saveFile(MultipartFile multipartFile, String fileName, String path) throws IOException {
         var file = new File(path + fileName);
-        if (multipartFile.isEmpty()) return false;
-        if (file.exists()) {
-            System.out.println("фаил уже существует");
-            return true;
-        }
+        if (file.exists() || multipartFile.isEmpty()) return false;
 
         var checkPath = Paths.get(path);
         if (!Files.exists(checkPath)) {
@@ -44,4 +41,6 @@ public class CloudRepository {
         if (!file.exists()) return false;
         return file.renameTo(new File(path + "//" + newName));
     }
+
+
 }

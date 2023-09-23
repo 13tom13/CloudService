@@ -8,12 +8,11 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.password.NoOpPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import ru.netology.cloudservicediplom.security.CustomUserDetailsService;
 import ru.netology.cloudservicediplom.security.JWTFilter;
+import ru.netology.cloudservicediplom.security.JWTUtil;
 
 
 @EnableWebSecurity
@@ -24,10 +23,9 @@ public class SecurityConfig {
 
     private final JWTFilter jwtFilter;
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return NoOpPasswordEncoder.getInstance();
-    }
+    private final JWTUtil jwtUtil;
+
+
 
     @Bean
     public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
@@ -35,7 +33,7 @@ public class SecurityConfig {
                 http.getSharedObject(AuthenticationManagerBuilder.class);
         authenticationManagerBuilder
                 .userDetailsService(userDetailsService)
-                .passwordEncoder(passwordEncoder());
+                .passwordEncoder(jwtUtil.bcryptEncoder());
         return authenticationManagerBuilder.build();
     }
 

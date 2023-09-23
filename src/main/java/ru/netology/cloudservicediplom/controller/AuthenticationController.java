@@ -1,13 +1,16 @@
 package ru.netology.cloudservicediplom.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RestController;
 import ru.netology.cloudservicediplom.dto.AuthRequest;
 import ru.netology.cloudservicediplom.dto.Token;
 import ru.netology.cloudservicediplom.service.AuthenticationService;
 
-@CrossOrigin
 @RestController
 @RequiredArgsConstructor
 public class AuthenticationController {
@@ -23,6 +26,6 @@ public class AuthenticationController {
     @PostMapping("/logout")
     public ResponseEntity<?> logout(@RequestHeader("auth-token") String token) {
         authenticationService.logout(token);
-        return ResponseEntity.ok("Success logout");
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }

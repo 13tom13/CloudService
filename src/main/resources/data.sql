@@ -1,2 +1,5 @@
-insert into cloud_user(login, password, role) values('13tom@mail.ru', 'password', 'USER');
-insert into cloud_user( login, password, role) values('admin', 'password', 'ADMIN');
+insert into cloud_user(login, password) values('13tom@mail.ru', 'password');
+insert into cloud_user(login, password) values('adminest', 'password');
+insert into cloud_user(login, password) values('admin', 'pass');
+insert into cloud_user(login, password) values('user', 'pass');
+insert into cloud_user(login, password) values('useradmin', 'pass');

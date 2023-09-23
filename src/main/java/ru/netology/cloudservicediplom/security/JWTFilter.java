@@ -20,9 +20,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class JWTFilter extends OncePerRequestFilter {
 
-    public final static int BEARER_CUT = 7;
+    public final static String BEARER_HEADER = "Bearer ";
 
     private final JWTUtil jwtUtil;
+
+//    private final LogoutRepository logoutRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -33,8 +35,9 @@ public class JWTFilter extends OncePerRequestFilter {
         String username = null;
         String jwt = null;
 
-        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-            jwt = authorizationHeader.substring(BEARER_CUT);
+        if (authorizationHeader != null && authorizationHeader.startsWith(BEARER_HEADER)) {
+//            if (logoutRepository.findByToken(authorizationHeader).isPresent()) throw new RuntimeException("Token is logout");
+            jwt = authorizationHeader.substring(BEARER_HEADER.length());
             username = jwtUtil.extractUsername(authorizationHeader);
         }
 

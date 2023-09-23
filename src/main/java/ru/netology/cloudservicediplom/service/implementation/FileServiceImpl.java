@@ -30,7 +30,7 @@ public class FileServiceImpl implements FileService {
     @Value("${data.file_storage.path}")
     private String path;
 
-
+    private final static String PATH_FORMAT = "%s\\%s\\";
 
     private final JWTUtil jwtUtil;
 
@@ -48,10 +48,10 @@ public class FileServiceImpl implements FileService {
     }
 
 
-
     @Override
     public List<FileDTO> fileList(String token, int limit) {
-        var files = fileRepository.findByUsername(jwtUtil.extractUsername(token));
+        String user = jwtUtil.extractUsername(token);
+        var files = fileRepository.findByUsername(user);
         return files.stream()
                 .limit(limit)
                 .map(this::fromCloudFileToFileDTO)
@@ -60,12 +60,12 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public File getFile(String token, String filename) {
-            var username = jwtUtil.extractUsername(token);
-            var fullPath = fileRepository.findByUsernameAndFilename(username, filename)
-                    .orElseThrow(() -> new RuntimeException(format("File with name=[%s] not found.", filename)))
-                    .getPath();
-            return new File(fullPath + "//" + filename);
-        }
+        var username = jwtUtil.extractUsername(token);
+        var fullPath = fileRepository.findByUsernameAndFilename(username, filename)
+                .orElseThrow(() -> new RuntimeException(format("File with name=[%s] not found.", filename)))
+                .getPath();
+        return new File(fullPath + "//" + filename);
+    }
 
     @Override
     public void renameFile(String token, String fileName, String newFilename) {
@@ -81,18 +81,14 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
-    public void postFile(String token, MultipartFile multipartFile, String filename) {
-        System.out.println("FileService Save file");
+    public boolean postFile(String token, MultipartFile multipartFile, String filename) {
         var username = jwtUtil.extractUsername(token);
-        System.out.println("username: " + username);
-        var fullPath = String.format("%s\\%s\\", path, username);
-        System.out.println("fullPath: " + fullPath);
+        var fullPath = String.format(PATH_FORMAT, path, username);
+        boolean fileSavedToStorage;
         try {
-            boolean fileIsSave = cloudRepository.saveFile(multipartFile, filename, fullPath);
-            System.out.println("file is save in cloudRepository: " + fileIsSave);
-            if (fileIsSave) {
+            fileSavedToStorage = cloudRepository.saveFile(multipartFile, filename, fullPath);
+            if (fileSavedToStorage) {
                 var now = new Date(System.currentTimeMillis());
-                System.out.println("start creat CloudFile");
                 var file = CloudFile.builder()
                         .filename(filename)
                         .path(fullPath)
@@ -101,10 +97,7 @@ public class FileServiceImpl implements FileService {
                         .created(now)
                         .updated(now)
                         .build();
-                System.out.println("CloudFile is created: " + file);
-                System.out.println("start save in fileRepository");
                 fileRepository.save(file);
-                System.out.println("save in fileRepository is end");
             } else {
                 throw new RuntimeException("File not save");
             }
@@ -112,13 +105,13 @@ public class FileServiceImpl implements FileService {
             System.out.println(e.getMessage());
             throw new RuntimeException("File not save");
         }
-        System.out.println("FileService file is Save");
+        return fileSavedToStorage;
     }
 
     @Override
     public void deleteFile(String token, String filename) {
         var username = jwtUtil.extractUsername(token);
-        var fullPath = format("%s\\%s\\", path, username);
+        var fullPath = format(PATH_FORMAT, path, username);
         if (cloudRepository.deleteFile(filename, fullPath)) {
             var file = fileRepository.findByUsernameAndFilename(username, filename)
                     .orElseThrow(() -> new RuntimeException(format("File with name=[%s] not found.", filename)));
@@ -126,7 +119,7 @@ public class FileServiceImpl implements FileService {
         }
     }
 
-    private FileDTO fromCloudFileToFileDTO (CloudFile file) {
+    private FileDTO fromCloudFileToFileDTO(CloudFile file) {
         return FileDTO.builder()
                 .filename(file.getFilename())
                 .size(file.getSize())

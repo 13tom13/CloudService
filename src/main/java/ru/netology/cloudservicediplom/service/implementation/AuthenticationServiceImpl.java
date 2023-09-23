@@ -10,6 +10,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import ru.netology.cloudservicediplom.dto.AuthRequest;
+import ru.netology.cloudservicediplom.model.LogoutToken;
+import ru.netology.cloudservicediplom.repository.LogoutRepository;
 import ru.netology.cloudservicediplom.security.JWTUtil;
 import ru.netology.cloudservicediplom.service.AuthenticationService;
 
@@ -22,6 +24,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     private final JWTUtil jwtTokenUtil;
 
+    private final LogoutRepository logoutRepository;
+
     @Override
     public String getToken(AuthRequest authRequest) {
         Authentication authentication;
@@ -31,7 +35,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             authentication = authenticationManager
                     .authenticate(new UsernamePasswordAuthenticationToken(login, authRequest.getPassword()));
          jwt = jwtTokenUtil.generateToken((UserDetails) authentication.getPrincipal());
-         System.out.println("User with email: " + login);
         } catch (BadCredentialsException e) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "email or password is incorrect", e);
         }
@@ -40,6 +43,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public void logout(String token) {
-
+        logoutRepository.save(new LogoutToken(token));
     }
 }

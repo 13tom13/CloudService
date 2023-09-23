@@ -10,7 +10,6 @@ import ru.netology.cloudservicediplom.dto.NewFileNameDTO;
 import ru.netology.cloudservicediplom.service.FileService;
 
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
@@ -22,19 +21,18 @@ public class FileController {
     private final FileService fileService;
 
     @GetMapping("/list")
-    public List<FileDTO> fileList(@RequestHeader("auth-token") String authToken,
-                                     @RequestParam("limit") int limit) {
-        return fileService.fileList(authToken, limit);
+    public  ResponseEntity<List<FileDTO>> fileList(@RequestHeader("auth-token") String authToken,
+                                    @RequestParam("limit") int limit) {
+        return new ResponseEntity<>(fileService.fileList(authToken, limit), HttpStatus.OK);
     }
 
     @PostMapping("/file")
     public ResponseEntity<?> postFile(@RequestHeader("auth-token") String authToken,
                                       @RequestParam("filename") String filename, MultipartFile file){
-        System.out.println("FileController Save file");
-        fileService.postFile(authToken, file, filename);
-        System.out.println("FileController file is save");
-        return new ResponseEntity<>(HttpStatus.OK);
-    }
+        return fileService.postFile(authToken, file, filename) ?
+                new ResponseEntity<>(HttpStatus.OK)
+                : new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
 
     @DeleteMapping("/file")
     public ResponseEntity<?> deleteFile(@RequestHeader("auth-token") String authToken,
@@ -49,7 +47,7 @@ public class FileController {
     public ResponseEntity<byte[]> getFile(@RequestHeader("auth-token") String authToken,
                                            @RequestParam("filename") String fileName) {
         var file = fileService.getFile(authToken, fileName);
-        Path path = Paths.get(file.getAbsolutePath());
+        var path = Paths.get(file.getAbsolutePath());
         var bytes = Files.readAllBytes(path);
         var probeContentType = Files.probeContentType(path);
         return ResponseEntity.ok()

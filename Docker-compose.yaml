@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  mysql_db:
+    image: mysql
+#    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: admin
+      MYSQL_DATABASE: cloudservice
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: admin
+    volumes:
+      - ./dbdata:/var/lib/mysql/
+
+  cloud_service:
+    image: netology-diplom-backend:latest
+    container_name: netology-diplom-backend
+    restart: on-failure
+    depends_on:
+      - mysql_db
+    ports:
+      - "8080:8080"
+

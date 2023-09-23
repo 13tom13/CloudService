@@ -6,17 +6,23 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
+import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static ru.netology.cloudservicediplom.security.JWTFilter.BEARER_CUT;
+import static ru.netology.cloudservicediplom.security.JWTFilter.BEARER_HEADER;
+
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +33,17 @@ public class JWTUtil {
 
     @Value("${jwt.sessionTime}")
     private long sessionTime;
+
+    @Bean
+    public PasswordEncoder bcryptEncoder() {
+        return new BCryptPasswordEncoder(BCryptPasswordEncoder.BCryptVersion.$2Y, 12);
+    }
+
+    @PostConstruct
+    protected void init() {
+        SECRET_KEY = Base64.getEncoder().encodeToString(SECRET_KEY.getBytes());
+    }
+
 
     // генерация токена (кладем в него имя пользователя и authorities)
     public String generateToken(UserDetails userDetails) {
@@ -40,7 +57,7 @@ public class JWTUtil {
 
     //извлечение имени пользователя из токена (внутри валидация токена)
     public String extractUsername(String token) {
-        return extractClaim(token.substring(BEARER_CUT), Claims::getSubject);
+        return extractClaim(token.substring(BEARER_HEADER.length()), Claims::getSubject);
     }
 
     //извлечение authorities (внутри валидация токена)
