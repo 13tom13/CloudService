@@ -3,6 +3,7 @@ package ru.netology.cloudservicediplom.repository;
 import lombok.Cleanup;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.multipart.MultipartFile;
+import ru.netology.cloudservicediplom.exception.CloudServiceErrorUploadFile;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -10,6 +11,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+
+import static java.lang.String.format;
 
 @Repository
 public class CloudRepository {
@@ -28,6 +31,13 @@ public class CloudRepository {
             }
 
             byte[] bytes = multipartFile.getBytes();
+            try (BufferedOutputStream stream =
+                         new BufferedOutputStream(new FileOutputStream(file))) {
+                stream.write(bytes);
+            } catch (RuntimeException e) {
+                throw new CloudServiceErrorUploadFile(
+                        format("File with name=[%s] not saved in CloudRepository", fileName));
+            }
             @Cleanup BufferedOutputStream stream = new BufferedOutputStream(new FileOutputStream(file));
             stream.write(bytes);
             return true;

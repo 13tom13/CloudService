@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import ru.netology.cloudservicediplom.dto.FileDTO;
+import ru.netology.cloudservicediplom.exception.*;
 import ru.netology.cloudservicediplom.model.CloudFile;
 import ru.netology.cloudservicediplom.repository.CloudRepository;
 import ru.netology.cloudservicediplom.repository.FileRepository;
@@ -65,34 +66,34 @@ public class FileServiceImpl implements FileService {
     public File getFile(String token, String filename) {
         var username = jwtUtil.extractUsername(token);
         var fullPath = fileRepository.findByUsernameAndFilename(username, filename)
-                .orElseThrow(() -> new RuntimeException(format("File with name=[%s] not found.", filename)))
+                .orElseThrow(() ->
+                        new CloudServiceFileNotFoundException(filename))
                 .getPath();
         return new File(fullPath + "//" + filename);
     }
 
     @Override
     @Transactional
-    public void renameFile(String token, String fileName, String newFilename) {
+    public void renameFile(String token, String filename, String newFilename) {
         var username = jwtUtil.extractUsername(token);
-        var file = fileRepository.findByUsernameAndFilename(username, fileName)
-                .orElseThrow(() -> new RuntimeException(format("File with name=[%s] not found.", fileName)));
-        if (cloudRepository.renameFile(fileName, file.getPath(), newFilename)) {
+        var file = fileRepository.findByUsernameAndFilename(username, filename)
+                .orElseThrow(() ->
+                        new CloudServiceFileNotFoundException(filename));
+        if (cloudRepository.renameFile(filename, file.getPath(), newFilename)) {
             file.setFilename(newFilename);
             fileRepository.save(file);
         } else {
-            throw new RuntimeException("Exception, the file is not renamed");
+            throw new CloudServiceErrorInputData(format("File with name=[%s] not renamed", filename));
         }
     }
 
     @Override
     @Transactional
-    public boolean postFile(String token, MultipartFile multipartFile, String filename) {
+    public void postFile(String token, MultipartFile multipartFile, String filename) {
         var username = jwtUtil.extractUsername(token);
         var fullPath = String.format(PATH_FORMAT, path, username);
-        boolean fileSavedToStorage;
         try {
-            fileSavedToStorage = cloudRepository.saveFile(multipartFile, filename, fullPath);
-            if (fileSavedToStorage) {
+            if (cloudRepository.saveFile(multipartFile, filename, fullPath)) {
                 var now = new Date(System.currentTimeMillis());
                 var file = CloudFile.builder()
                         .filename(filename)
@@ -104,13 +105,11 @@ public class FileServiceImpl implements FileService {
                         .build();
                 fileRepository.save(file);
             } else {
-                throw new RuntimeException("File not save");
+                throw new CloudServiceErrorUploadFile(format("File with name: [%s] not saved in FileRepository", filename));
             }
         } catch (IOException e) {
-            System.out.println(e.getMessage());
-            throw new RuntimeException("File not save");
+            throw new CloudServiceErrorUploadFile("File not save");
         }
-        return fileSavedToStorage;
     }
 
     @Override
@@ -120,8 +119,12 @@ public class FileServiceImpl implements FileService {
         var fullPath = format(PATH_FORMAT, path, username);
         if (cloudRepository.deleteFile(filename, fullPath)) {
             var file = fileRepository.findByUsernameAndFilename(username, filename)
-                    .orElseThrow(() -> new RuntimeException(format("File with name=[%s] not found.", filename)));
+                    .orElseThrow(() ->
+                            new CloudServiceFileNotFoundException(filename));
+
             fileRepository.delete(file);
+        } else {
+            throw new CloudServiceErrorDeleteFile(filename);
         }
     }
 

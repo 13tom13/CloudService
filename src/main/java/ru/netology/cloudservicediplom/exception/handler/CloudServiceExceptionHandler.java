@@ -1,7 +1,9 @@
 package ru.netology.cloudservicediplom.exception.handler;
 
-import org.springframework.http.*;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.netology.cloudservicediplom.exception.*;
 
 @RestControllerAdvice
@@ -25,6 +27,11 @@ public class CloudServiceExceptionHandler {
 
     @ExceptionHandler(CloudServiceErrorUploadFile.class)
     public ResponseEntity<CloudServiceErrorUploadFile> ErrorUploadFileHandler(CloudServiceErrorUploadFile e) {
+        return new ResponseEntity<>(e, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(CloudServiceFileNotFoundException.class)
+    public ResponseEntity<CloudServiceFileNotFoundException> ErrorUploadFileHandler(CloudServiceFileNotFoundException e) {
         return new ResponseEntity<>(e, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
