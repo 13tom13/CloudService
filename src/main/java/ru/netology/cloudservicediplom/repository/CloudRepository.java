@@ -16,18 +16,22 @@ public class CloudRepository {
 
     public boolean saveFile(MultipartFile multipartFile, String fileName, String path) throws IOException {
         var file = new File(path + fileName);
-        if (file.exists() || multipartFile.isEmpty()) return false;
+        if (file.exists() || multipartFile.isEmpty()) {
+            return false;
+        } else {
 
-        var checkPath = Paths.get(path);
-        if (!Files.exists(checkPath)) {
-            var dir = new File(path);
-            dir.mkdir();
+
+            var checkPath = Paths.get(path);
+            if (!Files.exists(checkPath)) {
+                var dir = new File(path);
+                dir.mkdir();
+            }
+
+            byte[] bytes = multipartFile.getBytes();
+            @Cleanup BufferedOutputStream stream = new BufferedOutputStream(new FileOutputStream(file));
+            stream.write(bytes);
+            return true;
         }
-
-        byte[] bytes = multipartFile.getBytes();
-        @Cleanup BufferedOutputStream stream = new BufferedOutputStream(new FileOutputStream(file));
-        stream.write(bytes);
-        return true;
     }
 
     public boolean deleteFile(String fileName, String path) {

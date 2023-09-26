@@ -13,7 +13,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
 
-@CrossOrigin
 @RestController
 @RequiredArgsConstructor
 public class FileController {
@@ -21,22 +20,22 @@ public class FileController {
     private final FileService fileService;
 
     @GetMapping("/list")
-    public  ResponseEntity<List<FileDTO>> fileList(@RequestHeader("auth-token") String authToken,
-                                    @RequestParam("limit") int limit) {
+    public ResponseEntity<List<FileDTO>> fileList(@RequestHeader("auth-token") String authToken,
+                                                  @RequestParam("limit") int limit) {
         return new ResponseEntity<>(fileService.fileList(authToken, limit), HttpStatus.OK);
     }
 
     @PostMapping("/file")
     public ResponseEntity<?> postFile(@RequestHeader("auth-token") String authToken,
-                                      @RequestParam("filename") String filename, MultipartFile file){
+                                      @RequestParam("filename") String filename, MultipartFile file) {
         return fileService.postFile(authToken, file, filename) ?
                 new ResponseEntity<>(HttpStatus.OK)
                 : new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
+    }
 
     @DeleteMapping("/file")
     public ResponseEntity<?> deleteFile(@RequestHeader("auth-token") String authToken,
-                                    @RequestParam("filename") String fileName) {
+                                        @RequestParam("filename") String fileName) {
         fileService.deleteFile(authToken, fileName);
         return new ResponseEntity<>(HttpStatus.OK);
     }
@@ -45,7 +44,7 @@ public class FileController {
     @GetMapping(value = "/file")
     @SneakyThrows
     public ResponseEntity<byte[]> getFile(@RequestHeader("auth-token") String authToken,
-                                           @RequestParam("filename") String fileName) {
+                                          @RequestParam("filename") String fileName) {
         var file = fileService.getFile(authToken, fileName);
         var path = Paths.get(file.getAbsolutePath());
         var bytes = Files.readAllBytes(path);
@@ -59,8 +58,8 @@ public class FileController {
 
     @PutMapping(value = "/file")
     public ResponseEntity<?> renameFile(@RequestHeader("auth-token") String authToken,
-                                    @RequestParam("filename") String fileName,
-                                    @RequestBody NewFileNameDTO newFileName){
+                                        @RequestParam("filename") String fileName,
+                                        @RequestBody NewFileNameDTO newFileName) {
         fileService.renameFile(authToken, fileName, newFileName.getNewName());
         return new ResponseEntity<>(HttpStatus.OK);
     }

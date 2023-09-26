@@ -31,9 +31,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         Authentication authentication;
         String jwt;
         try {
-            String login = authRequest.getLogin();
             authentication = authenticationManager
-                    .authenticate(new UsernamePasswordAuthenticationToken(login, authRequest.getPassword()));
+                    .authenticate(new UsernamePasswordAuthenticationToken(authRequest.getLogin(), authRequest.getPassword()));
          jwt = jwtTokenUtil.generateToken((UserDetails) authentication.getPrincipal());
         } catch (BadCredentialsException e) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "email or password is incorrect", e);

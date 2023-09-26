@@ -22,9 +22,9 @@ public class AuthenticationController {
         return ResponseEntity.ok(new Token(authenticationService.getToken(authRequest)));
     }
 
-
     @PostMapping("/logout")
     public ResponseEntity<?> logout(@RequestHeader("auth-token") String token) {
+        System.out.println("token: " + token + " is logout");
         authenticationService.logout(token);
         return new ResponseEntity<>(HttpStatus.OK);
     }

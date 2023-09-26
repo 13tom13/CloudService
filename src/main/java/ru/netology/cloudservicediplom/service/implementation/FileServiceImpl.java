@@ -4,6 +4,7 @@ package ru.netology.cloudservicediplom.service.implementation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import ru.netology.cloudservicediplom.dto.FileDTO;
 import ru.netology.cloudservicediplom.model.CloudFile;
@@ -49,6 +50,7 @@ public class FileServiceImpl implements FileService {
 
 
     @Override
+    @Transactional
     public List<FileDTO> fileList(String token, int limit) {
         String user = jwtUtil.extractUsername(token);
         var files = fileRepository.findByUsername(user);
@@ -59,6 +61,7 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
+    @Transactional
     public File getFile(String token, String filename) {
         var username = jwtUtil.extractUsername(token);
         var fullPath = fileRepository.findByUsernameAndFilename(username, filename)
@@ -68,6 +71,7 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
+    @Transactional
     public void renameFile(String token, String fileName, String newFilename) {
         var username = jwtUtil.extractUsername(token);
         var file = fileRepository.findByUsernameAndFilename(username, fileName)
@@ -81,6 +85,7 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
+    @Transactional
     public boolean postFile(String token, MultipartFile multipartFile, String filename) {
         var username = jwtUtil.extractUsername(token);
         var fullPath = String.format(PATH_FORMAT, path, username);
@@ -109,6 +114,7 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
+    @Transactional
     public void deleteFile(String token, String filename) {
         var username = jwtUtil.extractUsername(token);
         var fullPath = format(PATH_FORMAT, path, username);
