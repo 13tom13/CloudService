@@ -16,6 +16,8 @@ public class AuthenticationController {
 
     @PostMapping("/login")
     public ResponseEntity<Token> login(@RequestBody AuthRequest authRequest) {
+
+
         return ResponseEntity.ok(new Token(authenticationService.getToken(authRequest)));
     }
 
@@ -27,6 +29,7 @@ public class AuthenticationController {
 
     @PostMapping("/logout")
     public ResponseEntity<?> logout(@RequestHeader("auth-token") String token) {
+        authenticationService.logout(token);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 }

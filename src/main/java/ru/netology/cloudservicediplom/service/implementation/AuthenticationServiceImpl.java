@@ -42,7 +42,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public void logout(String token) {
-        System.out.println("token is logout");
         logoutRepository.save(new LogoutToken(token));
     }
 }
