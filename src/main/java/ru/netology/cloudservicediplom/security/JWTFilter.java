@@ -8,6 +8,7 @@ import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import ru.netology.cloudservicediplom.repository.LogoutRepository;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -24,7 +25,7 @@ public class JWTFilter extends OncePerRequestFilter {
 
     private final JWTUtil jwtUtil;
 
-//    private final LogoutRepository logoutRepository;
+    private final LogoutRepository logoutRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -36,7 +37,10 @@ public class JWTFilter extends OncePerRequestFilter {
         String jwt = null;
 
         if (authorizationHeader != null && authorizationHeader.startsWith(BEARER_HEADER)) {
-//            if (logoutRepository.findByToken(authorizationHeader).isPresent()) throw new RuntimeException("Token is logout");
+            if (logoutRepository.findByToken(authorizationHeader).isPresent()) {
+                System.out.println("logout is token");
+                throw new RuntimeException("Token is logout");
+            }
             jwt = authorizationHeader.substring(BEARER_HEADER.length());
             username = jwtUtil.extractUsername(authorizationHeader);
         }
